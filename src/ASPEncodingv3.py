@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # indica le tratte percorribili a partire dalla data stazione
     CI.addPredicateType("local_routes", 2)
     # route information
-    CI.addPredicateType("len", 2) 
+    CI.addPredicateType("len", 2)  
     CI.addPredicateType("from", 2) 
     CI.addPredicateType("to", 2)
     CI.addPredicateType("id", 2)
