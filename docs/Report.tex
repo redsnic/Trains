@@ -13,7 +13,7 @@
 \tableofcontents
 \newpage
 \section{Quick overview of the problem}
-The proprosed problem (that we will refer to as the ``Trains" problem) consists in finding the best possible timetable for trains moving on a rail system. 
+The proposed problem (that we will refer to as the ``Trains" problem) consists in finding the best possible timetable for trains moving on a rail system. 
 The rail system is modelled as a multigraph, $G=(V,E)$, in which the nodes ($v\in V$) are the stations and the edges $(e\in E)$ the rail-roads. The maximum number of rail-roads among two stations, so the maximum number of edges connecting two nodes, is two.
 Each train $(t \in T)$ is indistinguishable and must be in one of these three states at any time:
 \begin{enumerate}
@@ -21,7 +21,7 @@ Each train $(t \in T)$ is indistinguishable and must be in one of these three st
 \item \textbf{Stopping}: The train is stopping at a station to load/unload passengers
 \item \textbf{Parking}: The train is parked in the deposit of a given station
 \end{enumerate} 
-Each node is labelled with number $c(v \in V) \in \mathbb{N}$ indicating the maximum amount of trains that can park in that station and each edge is labelled whith another number $c(e \in E) \in \mathbb{N}$ showing the number of time units necessary to complete the route.
+Each node is labelled with number $c(v \in V) \in \mathbb{N}$ indicating the maximum amount of trains that can park in that station and each edge is labelled with another number $c(e \in E) \in \mathbb{N}$ showing the number of time units necessary to complete the route.
 We say that $T_{max}$ is the length of the timetable in time units and it should be 
 made so it maximizes the number of connections among stations without having two 
 trains at the same stop or route at the same time. 
@@ -34,7 +34,7 @@ It can be also optionally required that the timetable satisfies certain constrai
 The starting configuration must have all the trains in a valid ``parking" status and 
 the number of trains parked in each station must be equal to that in 
 the final configuration. 
-\section{Assuptions and changes to the assignemnt}
+\section{Assuptions and changes to the assignment}
 In the interpretation of this problem we made the following assumptions:
 \begin{itemize}
 \item Due to the high complexity of the problem (see NP-hardness section), it was
@@ -46,7 +46,7 @@ to stop at the current station.
 \item Two stations ($a$ and $b$) are considered to be connected when a train stops at $a$
 and then at $b$ without \textbf{parking} in any deposit in the meantime.
 \item Connections do not involve train changes
-\item To satisfy a \textbf{path request} (or link request) is necessary that the train does 
+\item To satisfy a \textbf{path request} (or link request) it is necessary that the train does 
 not park when servicing the request.
 \item Instead of preparing ten graphs with ten test cases for each it was decided to prepare
 nine graphs with nine test cases for each and an additional collection of twenty test cases
@@ -54,7 +54,7 @@ to show experimentally how it is possible to solve the Hamiltonian circuit probl
 \end{itemize}
 \section{Model structure and implementation in Minizinc and ASP}
 \subsection{Input}
-Input is prepared and formatted by external scripts that will be described
+The input is prepared and formatted by external scripts that will be described
 in the next section. The information used are:
 \begin{itemize}
 \item the duration of the plan in time units 
@@ -654,7 +654,7 @@ crafty: 137595 ms
 trendy: 190945 ms
 many:   167846 ms
 \end{verbatim}
-\section{Conclusions and possible imporovements}
+\section{Conclusions and possible improvements}
 Even if these models are not solved efficiently enough to solve the proposed problem in it original formulation (if not for very easy cases) 
 it is often possible to cope with plans with reasonable length, in particular with the ASP implementation. 
 There are a few possible improvement for the models:
