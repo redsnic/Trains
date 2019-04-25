@@ -1,0 +1,14 @@
+# Grafo completo 4 nodi
+15
+% stations
+a 1
+b 0 
+c 0
+d 0
+% routes
+a b 5
+a c 5
+a d 5
+b c 5
+b d 5
+c d 5

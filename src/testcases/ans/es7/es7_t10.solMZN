@@ -1,0 +1,12 @@
+(1, 1, 'A', 'PARKS')
+(2, 1, 'A', 'PARKS')
+(3, 1, 'A', 'PARKS')
+(4, 1, 'A', 'PARKS')
+(5, 1, 'A', 'PARKS')
+(6, 1, 'A', 'PARKS')
+(7, 1, 'A', 'PARKS')
+(8, 1, 'A', 'PARKS')
+(9, 1, 'A', 'PARKS')
+(10, 1, 'A', 'PARKS')
+ANS := 0
+Execution Time: 221

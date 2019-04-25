@@ -1,0 +1,19 @@
+# Ham. circuit test --> FAIL!
+17
+% stations
+a 1
+b 0 
+c 0
+d 0
+e 0
+f 0
+g 0
+% routes
+a b 1 
+b c 1
+c d 1
+d e 1
+e f 1
+f g 1
+% requests
+link a a b c d e f g

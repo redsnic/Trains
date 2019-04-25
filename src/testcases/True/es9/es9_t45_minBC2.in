@@ -1,0 +1,20 @@
+# da consegna
+45
+% routes
+a b 4 4
+b c 4
+b d 8
+d f 4 
+d e 8 8
+d g 12 12
+% stations
+a 1
+b 0
+c 0
+d 0
+e 0
+f 0 
+g 0
+% requests
+minimum b c 2
+

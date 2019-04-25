@@ -9,14 +9,13 @@ from subprocess import call
  
 class ClingoInterface(object):
     '''
-    Interfaccia per l'uso semplificato di clingo 
-    permette di generare direttamente in python input e programma
-    e di sfruttarlo per maneggiare l'output
+    Interface to the Clingo solver
+    Allows python to generate models and solve them with clingo and then manipulate the output
+    (allow also to load a model (complete or patrtial) from a separate file)
     '''
     def addPredicateType(self, name, arity):
         '''
-        Aggiunge un predicato alla lista di quelli possibili
-        --- si potrebbe anche automatizzare ---
+        adds a predicate to the header of used predicates (not that important in general if not for facts)
         '''
         try:
             self.predicates[name+"/"+str(arity)]
@@ -26,8 +25,8 @@ class ClingoInterface(object):
     
     def addFact(self, name, params):
         '''
-        Aggiunge un fatto relativo ad uno specifico predicato
-        --- l'arita' e' estratta automaticamente ---
+       adds a fact for a given predicate
+        --- arity is automatically extracted ---
         '''
         try:
             if len(params) == self.predicates[name+"/"+str(len(params))][0]:
@@ -40,7 +39,7 @@ class ClingoInterface(object):
 
     def _prepareHeader(self):
         '''
-        prepara l'header con il nome del programma
+        adds the model name to the header
         '''
         if self.name == "":
             return ""        
@@ -51,7 +50,7 @@ class ClingoInterface(object):
     
     def _prepareDescription(self):
         '''
-        prepara l'header con la descrizione del programma
+        adds an header with the description of the model
         '''
         if self.description == "":
             return ""
@@ -62,7 +61,7 @@ class ClingoInterface(object):
 
     def _packText(self):
         '''
-        prepara il testo completo del programma ASP per l'esecuzione con clingo
+        prepares the model for its solution with clingo 
         '''
         text = self._prepareHeader()
         text+= self._prepareDescription()
@@ -77,13 +76,13 @@ class ClingoInterface(object):
                 
     def _getname(self, pred):
         '''
-        preleva il nome da un predicato di ouput estratto dal testo di clingo
+        extract the output predicates
         '''
         return pred[:pred.find("(")]
     
     def _getvals(self, pred):
         '''
-        preleva la lista degli argomenti di un predicato di output 
+        extracts the list of output predicates arguments
         '''
         return pred[pred.find("(")+1:len(pred)-1].split(",")    
 
@@ -126,16 +125,28 @@ class ClingoInterface(object):
         print( name + ":" + str(sorted(self.results(name, arity, solnum))) )
         
 
-    def run(self):
+    def run(self, mode=""):
         '''
-        Execute clingo and store answers 
+        Execute clingo and store answers
+        modes: 
+        auto  : Select configuration based on problem type
+        frumpy: Use conservative defaults
+        jumpy : Use aggressive defaults
+        tweety: Use defaults geared towards asp problems
+        handy : Use defaults geared towards large problems
+        crafty: Use defaults geared towards crafted problems
+        trendy: Use defaults geared towards industrial problems
+        many  : Use default portfolio to configure solver(s)
         '''
         program_text = self._packText()
         outfile = open(self.filename, "w")
         outfile.write(program_text)
         outfile.close()
         print("grounding + solving...")
-        call(["clingo", "-t", "8", self.filename], stdout=open("temOut.ans", 'wb'))
+        if mode == "":
+            call(["clingo", "-t", "8", self.filename], stdout=open("temOut.ans", 'wb'))
+        else:
+            call(["clingo", "-t", "8", "-configuration="+mode, "--time-limit=300", self.filename], stdout=open("temOut.ans", 'wb'))
         f = open("temOut.ans")
         for line in f.readlines():
             print(line)

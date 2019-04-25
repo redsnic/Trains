@@ -1,0 +1,16 @@
+# diramazione
+22
+% stations
+a 0
+b 3 
+c 0
+d 0
+e 0
+f 0
+% routes
+a b 5
+b c 5
+b e 5
+e f 5
+c d 5
+

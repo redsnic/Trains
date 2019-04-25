@@ -1,0 +1,15 @@
+(1, 1, 'A', 'PARKS')
+(2, 1, 'A', 'STOPS')
+(3, 1, 'A->E', 'MOVES')
+(4, 1, 'E', 'STOPS')
+(5, 1, 'E->D', 'MOVES')
+(6, 1, 'D', 'STOPS')
+(7, 1, 'D->C', 'MOVES')
+(8, 1, 'C', 'STOPS')
+(9, 1, 'C->B', 'MOVES')
+(10, 1, 'B', 'STOPS')
+(11, 1, 'B->A', 'MOVES')
+(12, 1, 'A', 'STOPS')
+(13, 1, 'A', 'PARKS')
+ANS := 14
+Execution Time: 1032

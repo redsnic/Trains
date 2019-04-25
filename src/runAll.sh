@@ -1,0 +1,11 @@
+./run.sh testcases/ans/es1/ testcases/True/es1/
+./run.sh testcases/ans/es2/ testcases/True/es2/
+./run.sh testcases/ans/es3/ testcases/True/es3/
+./run.sh testcases/ans/es4/ testcases/True/es4/
+./run.sh testcases/ans/es5/ testcases/True/es5/
+./run.sh testcases/ans/es6/ testcases/True/es6/
+./run.sh testcases/ans/es7/ testcases/True/es7/
+./run.sh testcases/ans/es8/ testcases/True/es8/
+./run.sh testcases/ans/es9/ testcases/True/es9/
+./run.sh testcases/ans/hamNo/ testcases/True/hamNo/
+./run.sh testcases/ans/hamYes/ testcases/True/hamYes/

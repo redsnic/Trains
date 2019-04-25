@@ -1,0 +1,12 @@
+# Ham. circuit test --> OK!
+9
+% stations
+a 1
+b 0 
+c 0
+% routes
+a b 1
+b c 1
+c a 1
+% requests
+link a a b c

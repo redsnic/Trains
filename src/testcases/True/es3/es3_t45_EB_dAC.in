@@ -1,0 +1,15 @@
+# Piccolo albero
+45
+% stations
+a 0
+b 1 
+c 0
+d 0
+e 1
+% routes
+a b 5
+a c 5
+c d 5
+c e 5
+% requests
+direct a c

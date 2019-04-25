@@ -4,29 +4,127 @@
 % Description:
 % Versione 3
 %%% Input facts:
-% parking/3
-% stopping/3
-% moving/4
-% local_routes/2
-% len/2
-% from/2
-% to/2
 % id/2
+% station/1
+% final/1
+% stopping/3
+% parking/3
+% local_routes/2
+% park/1
+% len/2
 % route/1
 % capacity/2
-% station/1
-% train/1
 % usable_trains/1
+% to/2
 % time/1
-% final/1
-% park/1
-% stop_only/1
+% moving/4
 % direct/2
+% from/2
 % ok_direct/2
-time(1..22).
-final(22).
-station(1..0).
-usable_trains(1..0).
+% stop_only/1
+% train/1
+time(1..40).
+final(40).
+station(1..6).
+usable_trains(1..1).
+capacity(1,1).
+park(1).
+capacity(2,0).
+stop_only(2).
+capacity(3,0).
+stop_only(3).
+capacity(4,0).
+stop_only(4).
+capacity(5,0).
+stop_only(5).
+capacity(6,0).
+stop_only(6).
+route(1).
+from(1,1).
+local_routes(1,1).
+to(1,2).
+len(1,1).
+id(1,1).
+route(2).
+from(2,2).
+local_routes(2,2).
+to(2,1).
+len(2,1).
+id(2,1).
+route(3).
+from(3,1).
+local_routes(1,3).
+to(3,4).
+len(3,15).
+id(3,2).
+route(4).
+from(4,4).
+local_routes(4,4).
+to(4,1).
+len(4,15).
+id(4,2).
+route(5).
+from(5,1).
+local_routes(1,5).
+to(5,6).
+len(5,1).
+id(5,3).
+route(6).
+from(6,6).
+local_routes(6,6).
+to(6,1).
+len(6,1).
+id(6,3).
+route(7).
+from(7,2).
+local_routes(2,7).
+to(7,3).
+len(7,1).
+id(7,4).
+route(8).
+from(8,3).
+local_routes(3,8).
+to(8,2).
+len(8,1).
+id(8,4).
+route(9).
+from(9,3).
+local_routes(3,9).
+to(9,4).
+len(9,1).
+id(9,5).
+route(10).
+from(10,4).
+local_routes(4,10).
+to(10,3).
+len(10,1).
+id(10,5).
+route(11).
+from(11,4).
+local_routes(4,11).
+to(11,5).
+len(11,1).
+id(11,6).
+route(12).
+from(12,5).
+local_routes(5,12).
+to(12,4).
+len(12,1).
+id(12,6).
+route(13).
+from(13,5).
+local_routes(5,13).
+to(13,6).
+len(13,1).
+id(13,7).
+route(14).
+from(14,6).
+local_routes(6,14).
+to(14,5).
+len(14,1).
+id(14,7).
+direct(4,1).
+direct(1,4).
 1{ max_trains(T) : usable_trains(T) }1.
 train(TRAIN) :- usable_trains(TRAIN), TRAIN<=MAX, max_trains(MAX).
 1{ parking(1, TRAIN, STATION): park(STATION)  }1 :- train(TRAIN).
@@ -46,6 +144,9 @@ moving(TIME+1, TRAIN, ROUTE, POSITION+1) :-
 :- stopping(TIME, TRAIN1, STATION), stopping(TIME, TRAIN2, STATION), station(STATION), train(TRAIN1), train(TRAIN2), time(TIME), TRAIN1 != TRAIN2.
 usage(TIME, STATION, S) :-  park(STATION), time(TIME), S=#count{ TR : parking(TI,TR,ST), train(TR), time(TI), park(ST), ST=STATION, TI=TIME }.
 :- CON>CAP, capacity(STATION, CAP), usage(TIME,STATION,CON), park(STATION), time(TIME).
+:- moving(TIME, TRAIN1, ROUTE1, POS1), moving(TIME+1,TRAIN1,ROUTE2,POS1), stopping(TIME, TRAIN2, DES), to(ROUTE1, DES), from(ROUTE2, DES), 
+   train(TRAIN1), train(TRAIN2), route(ROUTE1), route(ROUTE2), time(POS1), time(POS2), route(DES), time(TIME).
+:- stopping(TIME, TRAIN1, STATION), stopping(TIME+1, TRAIN2, STATION), station(STATION), time(TIME), train(TRAIN1), train(TRAIN2).
 :- moving(FIN, TRAIN, ROUTE, DUR), final(FIN), time(DUR), train(TRAIN), route(ROUTE).
 :- stopping(FIN, TRAIN, STATION), final(FIN), train(TRAIN), station(STATION).
 :- CINI!=CFIN, park(STAT), CINI = #count{ TRAIN : parking(1,TRAIN,STATION), train(TRAIN), station(STATION), STATION=STAT },
@@ -65,4 +166,4 @@ interval(TRAIN, A, START, STOP) :- station(A), station(B), min_conn(A,B,K), stop
 interval(TRAIN, A, START, STOP) :- station(A), station(B), pathReq(A,B,ID), stopping(START, TRAIN, A), train(TRAIN), time(START), time(STOP), 
         STOP=#min{ TIME : time(TIME), TIME>START, stopping(TIME, TRAIN, A) ; FIN : final(FIN) }.
 in_path( TRAIN, A, B, START, STOP) :- train(TRAIN), pathReq(A,B,ID), station(A), station(B), interval(TRAIN, A, START, MAXRANGE), 
-         STOP=#min{ STP : stopping(STP, TRAIN, B), STP>START, STP<MAXRANGE }.
+         STOP=#min{ STP : stopping(STP, TRAIN, B), STP>START, STP<=MAXRANGE }.

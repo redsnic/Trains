@@ -4,17 +4,52 @@ Created on 20 feb 2019
 @author: redsnic
 '''
 
-from subprocess import call
+
+# --- from STACK OVERFLOW, set timout for a function
+
+from functools import wraps
+import errno
+import os
+import signal
+
+class TimeoutError(Exception):
+    pass
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
+# ---------------------------------------
+
+import subprocess 
 import json
 import os
 import itertools
 
-
 class MinizincHelper(object):
     '''
-    classdocs
+    class to manage the input and the "execution" of MiniZinc models
+    --- for benchmarks the "solve" directive must be unique ad of one line
+    --- the section in which to add the arbitrary code must be surrounded by %#INPUT#% (and should be unique)
+        the code in this section is removed before the execution and it can be used for testing 
+    --- it is possible to load the model by file or to create it directly in python
     '''
     
+
+
 
     def runBenchmark(self, nRip, variables, type_var="int",mode="satisfy", options="default", varChoicheModes = None, constraintChoiceModes = None):
         '''
@@ -47,17 +82,27 @@ class MinizincHelper(object):
                 for cc in ConstraintChoiches:
                     solveLine2 = solveLine1 + cc + ", complete) " + mode + ";"
                     BenchmarkOutput[vc +","+cc] = {}
-                    #print(vc +","+cc)
+                    print(vc +","+cc)
                     for _ in range(nRip):
-                        self.run(solveLine2)
+                        try:
+                            self.run_timeout(solveLine2)
                         
-                        dic = self.returnStatistics()
-                        for k, v in dic.items():
-                            try:
-                                BenchmarkOutput[vc +","+cc][k]
-                            except KeyError:
-                                BenchmarkOutput[vc +","+cc][k] = []
-                            BenchmarkOutput[vc +","+cc][k].append(v)
+                            dic = self.returnStatistics()
+                            for k, v in dic.items():
+                                try:
+                                    BenchmarkOutput[vc +","+cc][k]
+                                except KeyError:
+                                    BenchmarkOutput[vc +","+cc][k] = []
+                                BenchmarkOutput[vc +","+cc][k].append(v)
+                        except TimeoutError:
+                            print("TIMEOUT!")
+                            if self.PID != None:
+                                self.PID.kill()
+                    for key, val in BenchmarkOutput.items():
+                        try:
+                            print(key + ":\t" + str(val["runtime"][0]))
+                        except:
+                            print(key + ":\t" + "TIMEOUT!")
                             
         else: # default mode
             solveLine = "solve " + mode + ";" 
@@ -77,7 +122,10 @@ class MinizincHelper(object):
         self.benchmarkResults = BenchmarkOutput
         return self.benchmarkResults
         
-        
+    @timeout(300)
+    def run_timeout(self,x):
+        self.run(x)
+
     def addLine(self, line):
         self.program.append(line)
         
@@ -114,7 +162,8 @@ class MinizincHelper(object):
             f.write(solveLine)
         f.close()
         # execution
-        call(["minizinc", "--solver", "Gecode", "--output-objective", "-o", "solutions.txt", "-s", "-t","8", "--output-mode", "json", "input.mzn"])
+        self.PID = subprocess.Popen(["minizinc", "--solver", "Gecode", "--output-objective", "-o", "solutions.txt", "-s","--output-mode", "json", "input.mzn"])
+        self.PID.wait()
         # output
         self.solutions = []
         self.statistics = {}

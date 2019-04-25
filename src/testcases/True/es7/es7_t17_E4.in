@@ -1,0 +1,10 @@
+# stella
+17
+% stations
+c 0
+d 0
+e 2
+% routes
+c e 5
+d e 5
+

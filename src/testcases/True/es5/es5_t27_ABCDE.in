@@ -1,0 +1,15 @@
+# due lineari singoli separati
+27
+% stations
+a 1
+b 1
+c 1
+d 1
+e 1
+f 1
+% routes
+a b 5
+b c 5
+d e 5
+e f 5
+

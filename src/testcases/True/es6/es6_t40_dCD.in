@@ -1,0 +1,18 @@
+# diramazione
+40
+% stations
+a 1
+b 0 
+c 0
+d 0
+e 0
+f 0
+% routes
+a b 5
+b c 5
+b e 5
+e f 5
+c d 5
+% requests
+direct c d
+
