@@ -155,16 +155,22 @@ class InputReader(object):
                     print(start + " -- " + stop + ' [label="' + str(weights[0]) + '"] [splines=false]')
         print("}")
         # requests
-        # directs
-        print("Direct train requests")
+        # directs 
+        print("Direct train requests:")
+        if len(self.directReqs) == 0:
+            print("None")
         for (start, stop) in self.directReqs:
             print("from " + start + " to " + stop)
         # minimum
-        print("minimum links for two stations")
+        print("minimum links for two stations:")
+        if len(self.minReqs) == 0:
+            print("None")
         for (start, stop, num) in self.minReqs:
             print(str(num) + " trains from " + start + " to " + stop )
         # links
         print("tours requested:")
+        if len(self.linkReqs) == 0:
+            print("None")
         for (start, stop, l) in self.linkReqs:
             print("from " + start + " to " + stop + " passing by " + " ".join(l))  
 

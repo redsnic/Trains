@@ -40,21 +40,21 @@ array [TIME, TRAINS] of var 0..Final: Distance;
 
 
 %#INPUT#%
-Final=20;
-nStations=7;
+Final=48;
+nStations=5;
 maxTrains=1;
-Capacities=[1,0,0,0,0,0,0];
-WithParking=[true,true,true,true,true,true,true];
-nRoutes=18;
-From=[1,2,1,2,2,3,2,4,4,5,4,5,4,6,4,7,4,7];
-To=[2,1,2,1,3,2,4,2,5,4,5,4,6,4,7,4,7,4];
-Length=[4,4,4,4,4,4,8,8,8,8,8,8,4,4,12,12,12,12];
-Id=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9];
-Connected=[|true,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false|false,true,false,true,true,false,true,false,false,false,false,false,false,false,false,false,false,false|false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false|false,false,false,false,false,false,false,true,true,false,true,false,true,false,true,false,true,false|false,false,false,false,false,false,false,false,false,true,false,true,false,false,false,false,false,false|false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false|false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,true|];
-Directs=[|false,false,false,false,false,false,false|false,false,false,false,false,false,false|false,false,false,false,false,false,false|false,false,false,false,false,false,false|false,false,false,false,false,false,false|false,false,false,false,false,false,false|false,false,false,false,false,false,false|];
-Min=[|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|];
+Capacities=[1,0,0,0,0];
+WithParking=[true,true,true,true,true];
+nRoutes=8;
+From=[1,2,2,3,3,4,4,5];
+To=[2,1,3,2,4,3,5,4];
+Length=[5,5,5,5,5,5,5,5];
+Id=[1,1,2,2,3,3,4,4];
+Connected=[|true,false,false,false,false,false,false,false|false,true,true,false,false,false,false,false|false,false,false,true,true,false,false,false|false,false,false,false,false,true,true,false|false,false,false,false,false,false,false,true|];
+Directs=[|false,false,false,false,false|false,false,false,false,false|false,false,false,false,false|false,false,false,false,false|false,false,false,false,false|];
+Min=[|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|];
 array [STATIONS, STATIONS] of int: PathRQ;
-PathRQ=[|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|0,0,0,0,0,0,0|];
+PathRQ=[|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|0,0,0,0,0|];
 par int: idLimit=0;
 array [1..idLimit, STATIONS] of int: Services;
 Services=array2d(1..0, STATIONS,[
@@ -206,4 +206,4 @@ constraint ans = sum(Linked);
  
 
 
-solve ::int_search(Moving, first_fail, indomain_min, complete) maximize ans;
+solve :: int_search(Moving,first_fail,indomain_median, complete) maximize ans;

@@ -38,6 +38,7 @@ import subprocess
 import json
 import os
 import itertools
+import time
 
 class MinizincHelper(object):
     '''
@@ -96,7 +97,9 @@ class MinizincHelper(object):
                                 BenchmarkOutput[vc +","+cc][k].append(v)
                         except TimeoutError:
                             print("TIMEOUT!")
+                            print(self.PID)
                             if self.PID != None:
+                                time.sleep(5)
                                 self.PID.kill()
                     for key, val in BenchmarkOutput.items():
                         try:
@@ -122,7 +125,7 @@ class MinizincHelper(object):
         self.benchmarkResults = BenchmarkOutput
         return self.benchmarkResults
         
-    @timeout(300)
+    @timeout(5)
     def run_timeout(self,x):
         self.run(x)
 

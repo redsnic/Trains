@@ -1,7 +1,8 @@
 '''
-Created on 9 mar 2019
+Created on 24 apr 2019
 
 @author: redsnic
+Version for benchmarking, prints the execution times in ms for each search mode
 ''' 
  
 from ClingoInterface import ClingoInterface 

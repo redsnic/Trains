@@ -9,97 +9,67 @@
 \newtheorem{Definizione}{Definizione}
 \newtheorem{Lemma}{Lemma}
 \newtheorem{Teorema}{Teorema}
-
-
-
 \textbf{Assignment report} (Nicolò Rossi 129807)
-
-
+\tableofcontents
+\newpage
 \section{Quick overview of the problem}
-
-The proprosed problem (that we will refer to as the ``Trains" problem) consists in finding the best posible timetable for trains moving on a rail system. 
-
-The rail system is modelled as a multigraph, $G=(V,E)$, in which the nodes ($v\in V$) are the stations and the edges $(e\in E)$ the railroads. The maximum number of railroads among two stations, so the maximum number of edges connecting two nodes, is two.
-Each train $(t \in T)$ is indistiguishible and must be in one of theese three states at any time:
-
+The proprosed problem (that we will refer to as the ``Trains" problem) consists in finding the best possible timetable for trains moving on a rail system. 
+The rail system is modelled as a multigraph, $G=(V,E)$, in which the nodes ($v\in V$) are the stations and the edges $(e\in E)$ the rail-roads. The maximum number of rail-roads among two stations, so the maximum number of edges connecting two nodes, is two.
+Each train $(t \in T)$ is indistinguishable and must be in one of these three states at any time:
 \begin{enumerate}
 \item \textbf{Moving}: The train is moving from a station to another following a given route
 \item \textbf{Stopping}: The train is stopping at a station to load/unload passengers
 \item \textbf{Parking}: The train is parked in the deposit of a given station
 \end{enumerate} 
-
 Each node is labelled with number $c(v \in V) \in \mathbb{N}$ indicating the maximum amount of trains that can park in that station and each edge is labelled whith another number $c(e \in E) \in \mathbb{N}$ showing the number of time units necessary to complete the route.
 We say that $T_{max}$ is the length of the timetable in time units and it should be 
 made so it maximizes the number of connections among stations without having two 
 trains at the same stop or route at the same time. 
-
 It can be also optionally required that the timetable satisfies certain constraints:
 \begin{enumerate}
 \item \textbf{Direct trains}: there must be a train connecting two stations without any stop
 \item \textbf{Minimum connections}: there must be at least $k$ connections among two stations
 \item \textbf{Paths}: there must be a train connecting two stations and making a list of intermediate stops (in any order)
 \end{enumerate} 
-
 The starting configuration must have all the trains in a valid ``parking" status and 
 the number of trains parked in each station must be equal to that in 
 the final configuration. 
-
 \section{Assuptions and changes to the assignemnt}
-
-In the interpretation of this problem the following assumptions were made:
-
+In the interpretation of this problem we made the following assumptions:
 \begin{itemize}
-
 \item Due to the high complexity of the problem (see NP-hardness section), it was
 almost never possible to generate solutions with $T_{max}=144$ so it was decided
 to treat this parameter as an input rather than as a constant.
  
 \item It was considered necessary for every train leaving or entering a deposit of a station
 to stop at the current station. 
-
 \item Two stations ($a$ and $b$) are considered to be connected when a train stops at $a$
-and then at $b$ without \textbf{parking} in any station in the meantime.
-
+and then at $b$ without \textbf{parking} in any deposit in the meantime.
 \item Connections do not involve train changes
-
-\item To sataisfy a \textbf{path request} (or link request) is necessary that the train does 
+\item To satisfy a \textbf{path request} (or link request) is necessary that the train does 
 not park when servicing the request.
-
 \item Instead of preparing ten graphs with ten test cases for each it was decided to prepare
 nine graphs with nine test cases for each and an additional collection of twenty test cases
 to show experimentally how it is possible to solve the Hamiltonian circuit problem using these models.
-
 \end{itemize}
-
-
 \section{Model structure and implementation in Minizinc and ASP}
-
-\subsection{Search space generation}
-\begin{verbatim}
-
-\end{verbatim}
-
 \subsection{Input}
-
-Input is prepared and formatted by external python scripts that will be described
+Input is prepared and formatted by external scripts that will be described
 in the next section. The information used are:
 \begin{itemize}
 \item the duration of the plan in time units 
 \item the identifiers of the stations and the associated capacity of their deposit
-\item the routes with their length, source, destination and id (used to understeand if two routes are actually the same rail but taken in the opposite direction)
+\item the routes with their length, source, destination and ID (used to understeand if two routes are actually the same rail but taken in the opposite direction)
 \item the direct requests
 \item the minimum connection requests
 \item the path request with a given identification number 
 \end{itemize}
-
 \subsection{Train number constraint}
-
 In minizinc we set an integer variable, usedTrains so that it must be 
 is less or equal then the maximum number of trains that can
-be stored in any station (and greater than zero).
+be stored in any deposit (and greater than zero).
 Each train with an id greater than usedTrains is forced 
-to be unused and can't be in any state.
-
+to be unused.
 \begin{verbatim}
 var 1..maxTrains: usedTrains;
 constraint (usedTrains>0 /\ usedTrains<=maxTrains);
@@ -111,21 +81,16 @@ constraint forall(time in TIME, train in TRAINS)
         Moving[time,train] = 0 /\ 
         Distance[time, train] = 0));
 \end{verbatim}
-
 In ASP the concept is similar but unused trains are simply ignored.
-
 \begin{verbatim}
 # look for the best number of trains
 CI.addProgramLine("1{ max_trains(T) : usable_trains(T) }1.")
 CI.addProgramLine("train(TRAIN) :- usable_trains(TRAIN), TRAIN<=MAX, max_trains(MAX).")
 \end{verbatim}
-
 \subsection{Unique train state constraint}
-
 In minizinc we encode that any train can be in a parking, moving or stopping state using
 the Parking, Moving and Stopping arrays. At any time for any train only one of them
-can have a value grater than one indicating where the train is in the rail system.
-
+can have a value grater than zero indicating where the train is in the rail system.
 \begin{verbatim}
 % constraint the trains to be in a single place at a time
 constraint forall(time in TIME, train in TRAINS)
@@ -147,32 +112,26 @@ constraint forall(time in TIME, train in TRAINS)
       ((train <= usedTrains)->(Distance[time,train] = 0 <->
        Moving[time,train]  = 0));     
 \end{verbatim}
-
-In ASP this is encoded directly in the search space generation.
-
+In ASP this is encoded directly in the constraint for the generation of the next
+position of any train.
 \subsection{Valid train actions definition}
-
 In MiniZinc, for each used train, we set that:
-
 \begin{itemize}
 \item if it is parking in a station it can either remain parked or be loaded on the rail
 \item if it is stopping at a station it can take an adjacent route or park in that station 
 \item if it was moving on a rail it can either continue 
-moving on it or, only if it is arrivng at a station, stop at it or take another route 
+moving on it or, only if it is arriving at a station, stop at it or take another route 
 leaving that station.
 \end{itemize}
-
 \begin{verbatim}
       
 % movment constraints
-
 constraint forall(time in 1..Final-1, train in TRAINS)
     ((train <= usedTrains)->(
        Parking[time,train] > 0 ->
       ((Parking[time+1,train] = Parking[time,train]) \/
        (Stopping[time+1,train] = Parking[time,train]))
     ));      
-
 constraint forall(time in 1..Final-1, train in TRAINS)
     ((train <= usedTrains)->(
        Stopping[time,train] > 0 ->
@@ -195,14 +154,11 @@ constraint forall(time in 1..Final-1, train in TRAINS)
             \/ (Stopping[time+1,train] = To[Moving[time,train]]) 
         endif
     ));  
-
 \end{verbatim}
-
-In ASP the model is similar; it was added a rule that checks if it
-is possible to take a given route and end it in time to reduce the search space.
-
+In ASP the model is similar; it was added a rule to reduce the search space
+that checks if it is possible to take a given route and arrive to its end before the end 
+of the plan.
 \begin{verbatim}
-
 # prepares the following steps
 # from the deposit
 CI.addProgramLine("1{ stopping(TIME+1,TRAIN,STATION);
@@ -237,12 +193,9 @@ CI.addProgramLine("TIME<FIN, final(FIN), moving(TIME, TRAIN, ROUTE, POSITION),
      time(POSITION), time(TIME), train(TRAIN), route(ROUTE),
      POSITION=LENGTH, len(ROUTE, LENGTH).") 
 \end{verbatim}
-
 \subsection{Initial and final configurations preparation}
-
 In MiniZinc we simply state that any used tain must be parked in a station
 with a deposit.
-
 \begin{verbatim}
 % starting configuration    
 constraint forall(train in TRAINS)
@@ -250,11 +203,9 @@ constraint forall(train in TRAINS)
            (exists(station in STATIONS)(Parking[1, train]=station /\
             Capacities[station]>0))); 
 \end{verbatim}
-
 In ASP we similarly force each train to be parked at time 1. To remove
 symmetries made by train identifiers we force them to follow the order of
 station identifiers.
-
 \begin{verbatim}
 CI.addProgramLine("1{ parking(1, TRAIN, STATION): park(STATION)  }1 :- train(TRAIN).")
 # symmetry breaking rule, sort identifiers
@@ -262,13 +213,11 @@ CI.addProgramLine(":- parking(1, TR1, S1), parking(1, TR2, S2),
                       train(TR1), train(TR2), park(S1), park(S2),
                       TR1>TR2, S1<S2.")
 \end{verbatim}
-
 To constraint the final state so that the number of 
 parked train in each station is the same 
 as in the initial state in MiniZinc as in ASP we count
 the number of parked trains for each
 station at both times ad require them to be equal.  
-
 \begin{verbatim}
 % stating conf = stop conf
 constraint forall(station in STATIONS)
@@ -276,11 +225,8 @@ constraint forall(station in STATIONS)
            (Parking[1, train]==station) == sum(train in TRAINS)
                (Parking[Final, train]==station));                         
 \end{verbatim}
-
 In ASP it is also required that each train is in a station (as a cut).
-
 \begin{verbatim}
-
 # --- FINAL STATE
 # 1 - all the trains are in a station (additional cut)
 CI.addProgramLine(":- moving(FIN, TRAIN, ROUTE, DUR), final(FIN), time(DUR),
@@ -295,14 +241,10 @@ CI.addProgramLine("  CFIN = #count{ TRAIN : parking(FIN,TRAIN,STATION),
                      train(TRAIN), station(STATION), 
                      final(FIN), STATION=STAT }.")
 \end{verbatim}
-
-
 \subsection{Five minutes constraint}
-
 The ``five minutes" constraint requires that a station must be 
 free for a time unit when a train stops at it. This is implemented
 directly in MiniZinc and ASP in a natural way.
-
 \begin{verbatim}
 % cannot have another train stopping at a 
 % station or another train passing by it within 
@@ -317,9 +259,7 @@ constraint forall(time in TIME, t1 in TRAINS)
                  (Stopping[time,t1] > 0 -> not exists(t2 in TRAINS)
                  ( t1!=t2 /\ Stopping[time,t1] == Stopping[time+1,t2]));
 \end{verbatim}
-
 The same in the ASP encoding:
-
 \begin{verbatim}
 # - eliminate cases in which a train enters a station before the temporal unit gap
 CI.addProgramLine(":- moving(TIME, TRAIN1, ROUTE1, POS1),
@@ -334,14 +274,10 @@ CI.addProgramLine(":- stopping(TIME, TRAIN1, STATION),
            stopping(TIME+1, TRAIN2, STATION), station(STATION), 
            time(TIME), train(TRAIN1), train(TRAIN2).")
 \end{verbatim}
-
 \subsection{Collision detection}
-
-
-In MiniZinc collison ar detected by chcking if the Stopping, Parking and Moving
+In MiniZinc collision are detected by checking if the Stopping, Parking and Moving
 array have different values at any time. In this case the global constraint 
 \verb+alldifferent_except_0+ is quite useful.
-
 \begin{verbatim}
 % cannot have two trains leaving a station at the same time
 constraint forall(time in TIME, t1 in TRAINS)
@@ -350,13 +286,11 @@ constraint forall(time in TIME, t1 in TRAINS)
                    From[Moving[time,t1]] == From[Moving[time,t2]] /\
                    Distance[time,t1] == Distance[time,t2] /\
                    Distance[time,t1] == 1 ));
-
 % cannot have two trains at the same station at the same time 
 constraint forall(time in TIME)
    (alldifferent_except_0(
          ([ Stopping[time,train] | train in TRAINS])
     ));
-
 % cannot have two trains on the same route at the same time
 constraint forall(time in TIME)
         (alldifferent_except_0(
@@ -364,9 +298,7 @@ constraint forall(time in TIME)
            then Id[Moving[time,train]] 
            else 0 endif | train in TRAINS])));
 \end{verbatim}
-
 In ASP this is done by checking that two trains are never in the same state.
-
 \begin{verbatim}
 # eliminate cases in which a train is leaving 
 # the station and another one is arriving 
@@ -383,28 +315,22 @@ CI.addProgramLine(":- stopping(TIME, TRAIN, STATION),
         
 # - eliminate cases in which two trains are 
 # on the same route at the same time
-
 CI.addProgramLine(":- moving(TIME, TRAIN1, ROUTE1, POS1),
            moving(TIME, TRAIN2, ROUTE2, POS2), time(POS1),
            time(POS2), route(ROUTE1), route(ROUTE2),")
 CI.addProgramLine("id(ROUTE1,ID1), id(ROUTE2,ID2),
                    ID1=ID2, train(TRAIN1), train(TRAIN2),
                    TRAIN1!=TRAIN2.")
-
 # - eliminate cases in which two trains are stopping at the same station
-
 CI.addProgramLine(":- stopping(TIME, TRAIN1, STATION),
          stopping(TIME, TRAIN2, STATION), station(STATION),
          train(TRAIN1), train(TRAIN2), 
          time(TIME), TRAIN1 != TRAIN2.")
     
 \end{verbatim}
-
 \subsection{Manage direct trains}
-
 Direct trains are required to stop at two given station without
-making any itermediate stop. In MiniZinc this is expressed in the natural way:
-
+making any intermediate stop. In MiniZinc this is expressed in the natural way:
 \begin{verbatim}
 % DIRECTS
 constraint forall(a in STATIONS, b in STATIONS)
@@ -418,9 +344,7 @@ constraint forall(a in STATIONS, b in STATIONS)
                          t3>t1 /\ 
                          Stopping[t3,train]>0) ));
 \end{verbatim}
-
 In ASP it is required the the number of intermediate stops is zero:
-
 \begin{verbatim}
 # --- MANAGE DIRECTS
 CI.addProgramLine("ok_direct(A,B) :-  station(A),
@@ -432,9 +356,7 @@ CI.addProgramLine("CNT=#count{ C : stopping(T3, T, C),
          train(T), T=TRAIN }, CNT=0.")
 CI.addProgramLine(":- direct(A,B), not ok_direct(A,B).")
 \end{verbatim}
-
 \subsection{Manage minimum connection constraint}
-
 Two stations are connected by a train when it stops at both without parking 
 or stopping again at one of them in the middle. In MiniZinc this is implemented
 by counting the number of times every train connects two stations:
@@ -447,10 +369,8 @@ constraint forall(a in STATIONS, b in STATIONS)
            ( not exists(t3 in TIME)(t3<t2 /\ t3>t1 /\ (Parking[t3,train]>0 \/
              Stopping[t3,train]=a \/ Stopping[t3,train]=b))))));
 \end{verbatim}
-
 In ASP it is necessary to compute the time intervals in which a train is 
 moving to connect the two stations and look if they are acceptable:
-
 \begin{verbatim}
 # --- MANAGE MINIMUM NUMBER OF CONNECTIONS
 # compute return intervals for each train (if required)
@@ -466,17 +386,13 @@ CI.addProgramLine(" train(TRAIN), time(START),
         time(STOP), stopping(STOPTIME, TRAIN, B),
         time(STOPTIME), STOPTIME>START, STOPTIME<STOP}.")
 \end{verbatim}
-
 \subsection{Manage path constraints}
-
 Path constraints require that there exists a train connecting two stations
 and passing by a list of other stations. 
 This is done in MiniZinc in the natural way (additional cuts were added to 
 speed up the search):
-
 \begin{verbatim}
 % PATHS
-
 constraint forall(a in STATIONS, b in STATIONS)
    ( (PathRQ[a,b] > 0) -> 
       exists(train in TRAINS, t1,t2 in TIME) 
@@ -494,19 +410,17 @@ constraint forall(a in STATIONS, b in STATIONS)
        (Stopping[t1,train]=a /\ 
         Stopping[t2,train]=b /\
         t1<t2));
-
 constraint forall(idt in 1..idLimit, inter in STATIONS)
       ( (Services[idt,inter]=1) -> 
         exists(train in TRAINS, t in TIME)
         (Stopping[t,train]=inter));
 \end{verbatim}
-
-In ASP this contraint is implemented in a more complex way. This method 
+In ASP this constraint is implemented in a more complex way. This method 
 involves the computation of the time intervals at which any train is connecting
-the first and last stations and checks if one of them is acceptable. The 
-ASP code necessary for the intermediate stops check is prepared using python
+the first and last stations of the path and checks if one of this interval is acceptable.
+The ASP code necessary for the intermediate stops check is prepared using python and
+prepares the model 
 so that if one of these stops is missing the solution is discarded.
-
 \begin{verbatim}
 # --- MANAGE INTERMEDIATE STOPS
 # compute return intervals for each train (if required)
@@ -552,15 +466,12 @@ for constraint in Reader.pathRequests:
            + "), station(" + constraint["SOURCE"]
            + "), station(" + constraint["DESTINATION"] + ").")
 \end{verbatim}
-
 \subsection{Objective function computation}
-
 The objective function maximizes the number of connected stations. In this 
 case it is admissible that a train parked during the connection trip. 
-In both MiniZinc and ASP it is fistly computed the number of 
+In both MiniZinc and ASP it is firstly computed the number of 
 connected stations and then required its maximization, so that it is
 easy to read the answer from the output of the solvers. 
-
 \begin{verbatim}
 array [STATIONS, STATIONS] of var bool: Linked;
 constraint forall(s in STATIONS)(not Linked[s,s]);
@@ -572,13 +483,11 @@ constraint forall(s1,s2 in STATIONS)
                    Stopping[t1,train]==s1 /\ 
                    Stopping[t2,train]==s2)) -> not Linked[s1,s2])
   );
-
-
 var int: ans;
 constraint ans = sum(Linked);
 solve maximize ans;
 \end{verbatim}
-
+ASP:
 \begin{verbatim}
 # --- OBJECTIVE FUNCTION
 CI.addProgramLine("linked(A,B) :- A!=B, station(A),
@@ -588,37 +497,26 @@ CI.addProgramLine("answer(S) :- S=#count{ A,B : linked(A,B),
                    station(A), station(B), A!=B }.")
 CI.addProgramLine("#maximize{ S : answer(S) }.")
 \end{verbatim}
-
 \section{Brief description of the pre and post processing utilities}
-
 The Pre and Post processing activities for the input management and model creation where made by using python scripts to interface this
 programming language to the Clingo and MiniZinc solvers. They require that you have \verb+clingo+ and \verb+minizinc+ in your path
 and they let you create, import or modify models written ASP and MiniZinc, run the solvers on them and evaluate the given answers
-directly in a single program. The \verb+InputReader.py+ utility checks if the input format is correct and formats it for the use in 
-\verb+clingo+ and \verb+minizinc+.
-
+directly in a single program. The \verb+InputReader.py+ utility checks if the input format is correct and prepares it for the use in the 
+\verb+clingo+ and \verb+minizinc+ models.
 \section{Proof of NP-Hardness}
 \subsection{The ``train" problem is NP-hard}
-
 In this section we aim to show that the train problem is NP-hard and we do that by reducing the NP-complete \textbf{Hamiltonian circuit} problem to the train problem.
-
 \subsubsection{Instance translation: }
-
 Consider a generic Hamiltonian circuit instance. Let $G(V,E)$ be the undirected graph associated to this instance and 
 let $v \in E$ be the starting node. We create an instance of the train problem as follows:
-
 \begin{enumerate}
-
-
 \item We set $G(V,E)$ to be the graph describing all the possible routes of the trains, so $V$ is the set of stations and $E$ the set of the railroads.
 \item We set $v\in V$ to be the only station with a train deposit, with a maximum capacity of $1$, hence, the maximum number of trains is $1$.
 \item The weight of each edge is set to $1$
 \item We set $T=2|V|+3$ as the total number of time slots, so that is possible to move and stop at each station iff at any time it is possible to reach a never visited station (or to return to $v$) by traversing a single edge.   
 \item Even if not strictly necessary, we add the request of having a train from $v$ to $v$ and passing by $V\setminus \{v\}$
 \end{enumerate}
-
 \subsubsection{Solution:}
-
 By point number 5, we have that the minimum amount of time necessary to serve such a request is the sum of:
 \begin{enumerate}
 \item $1$ time slot for putting the train onto the rails at the beginning of the operations
@@ -628,19 +526,14 @@ By point number 5, we have that the minimum amount of time necessary to serve su
 \end{enumerate}
 Having set, by point 4, the maximum number of time slots exactly to $2|V|+3$ this means that the solver might yield a solution iff condition 5 is satisfied and there is not a the train does pass exactly one time by any station (as the amount of time slots is not sufficient to permit repetitions of them). This means that the routes taken by the train exactly describe an Hamiltonian circuit.
 We can finally conclude that this problem admits a solution iff there is an Hamiltonian circuit in the graph $G=(V,E)$ and this proves the NP-hardness of this problem.
-
 \subsection{Considerations on admissibility verification }
-
 Consider now a generic instance of a train problem:
-
 \begin{enumerate}
 \item the number of trains that are not still in a park is less than $|V|*T$ as any train must use a time slot to be prepared on a stop.
 \item the maximum number of times a train can reach a station is again bounded by $|V|*T$ for the same reasons as before
 \item the requests are at in a linear relation with the total length of the program. Let $R$ be the set of the requests  
 \end{enumerate}
-
 points 1 and 2 combined states that the number occurring in the definition of the program are bounded by values polynomially related to the input. 
-
 If we consider a generic solution to a generic instance of the train problem we can evaluate if it is admissible in
 polynomial time (let $O$ be the output, by the previous consideration it has polynomial size and is structured as a timetable stating at each time where each train is):
 \begin{enumerate}
@@ -648,19 +541,13 @@ polynomial time (let $O$ be the output, by the previous consideration it has pol
 \item we can check a direct request (eg. from A to B) easily looking for a train that stops at A at a certain time and then at B without any stop or park action in the middle, the way of reasoning is similar for the request with intermediate stops.
 \item to test minimum number of connections request (eg. from A to B) we simply scan the timetables for each train and count the total number of times a train stops at A and then at B. 
 \end{enumerate}
-
-
 Any other request is easily solved in polynomial time with similar strategies. We can then state that it is possible to evaluate admissibility in polynomial time if we assume that
-the number of time unit is polinomially relataed with the size of the program, 
+the number of time unit is polynomially related with the size of the program, 
 otherwise the solution would be of course exponential in size.
-
-
 \section{Testing configuration and results}
-
-Many different test cases were perpared to test the performance of the MiniZinc and ASP models. We considered nine different rail system in 
-nine possible configuration each and another twenty graphs to show how it is possible to reduce the Hamiltomian Circuit problem to 
+Many different test cases were prepared to test the performance of the MiniZinc and ASP models. We considered nine different rail system in 
+nine possible configuration each and another twenty graphs to show how it is possible to reduce the Hamiltonian Circuit problem to 
 the ``Trains" one:
-
 \begin{itemize}
 \item The first graph is a five nodes linear graph with one-binary rails
 \item The second graph is a five nodes linear graph with two-binary rails
@@ -674,29 +561,21 @@ the ``Trains" one:
 \item folder \verb+noHam+ contains ten examples of graphs that have not Hamiltonian Circuits
 \item folder \verb+yesHam+ contains ten examples of graphs that have Hamiltonian Circuits
 \end{itemize}
-
 It is possible to use the script \verb+getInfo.sh <testcase.in>+ to print its details in a more readable format and have a .dot 
 representation of the rail system.  
-
-The testing machine is configured with 16GB of RAM, a quad core (eight threads) Intel i7-2630QM processor and Ubuntu 16.04. 
+The testing machine is configured with 16GB of RAM, a quad core (eight threads) Intel i7-2630QM processor running on Ubuntu 16.04 LTS. 
 Clingo version is 5.3.1 and MiniZinc is version 2.2.3. The timeout was set after five minutes, see \verb+run.sh+ and \verb+runAll.sh+
 scripts for more information.
-
 The results shown how the ASP encoding is far superior than MiniZinc when elaborating longer plans with many trains; on the other 
 end, in the most complex cases of the Hamiltonian circuit tests, the MiniZinc encoding is capable of finding the solution while
 ASP tends to timeout or to run out of memory. This might be due to the implementation of the path constraint that is far more 
 complex in ASP.
-
 \section{Considerations on solver settings}
-
 We used the test cases \verb+es9_t20.in+ and \verb+es8_t40_dDA_dAD+ for MiniZinc and ASP respectively, 
 the solution in the first example was found in almost ten seconds, while in the second there were necessary two minutes and ten seconds.
-
 \subsection{MiniZinc}
-
 Changing the search options for the ``Moving" variables only has a huge negative impact in the execution time, if compared with the default method.
-The folowing table shows the results of the MiniZinc execution for all the possible combinations of variable and constraint choiches (results are in ms):
-
+The following table shows the results of the MiniZinc execution for all the possible combinations of variable and constraint choices (results are in ms):
 \begin{verbatim}
 max_regret,indomain_median:          TIMEOUT!
 occurrence,indomain_median:          TIMEOUT!
@@ -706,9 +585,9 @@ max_regret,indomain:                 TIMEOUT!
 input_order,indomain:                TIMEOUT!
 anti_first_fail,indomain_reverse_split:      TIMEOUT!
 smallest,indomain_reverse_split:     TIMEOUT!
-input_order,indomain_reverse_split:	TIMEOUT!
+input_order,indomain_reverse_split:     TIMEOUT!
 first_fail,indomain_median:          TIMEOUT!
-max_regret,indomain_split:	        TIMEOUT!
+max_regret,indomain_split:              TIMEOUT!
 occurrence,indomain_min:             TIMEOUT!
 dom_w_deg,indomain_split:            TIMEOUT!
 input_order,indomain_min:            258131.556
@@ -731,7 +610,7 @@ anti_first_fail,indomain_random:     TIMEOUT!
 most_constrained,indomain_min:       TIMEOUT!
 most_constrained,indomain_reverse_split:   TIMEOUT!
 dom_w_deg,indomain:                  TIMEOUT!
-occurrence,indomain_reverse_split:	TIMEOUT!
+occurrence,indomain_reverse_split:      TIMEOUT!
 largest,indomain_median:             TIMEOUT!
 dom_w_deg,indomain_min:              TIMEOUT!
 anti_first_fail,indomain_min:        57600.29
@@ -762,34 +641,27 @@ occurrence,indomain_random:          TIMEOUT!
 input_order,indomain_median:         TIMEOUT!
 first_fail,indomain:                 TIMEOUT!
 \end{verbatim}   
-
 We get the best result with the combination \verb+smallest,indomain_min+, however, this result is far form that of the default settings.
 For ASP the situation is different and it was seen that the best search mode was \verb+handy+ (large problems optimization):
-
 \begin{verbatim}
-many:	167846 ms
-auto:	172416 ms
-frumpy:	158683 ms
-jumpy:	149859 ms
-tweety:	145054 ms
-handy:	125162 ms
-crafty:	137595 ms
-trendy:	190945 ms
-many:	167846 ms
+many:   167846 ms
+auto:   172416 ms
+frumpy: 158683 ms
+jumpy:  149859 ms
+tweety: 145054 ms
+handy:  125162 ms
+crafty: 137595 ms
+trendy: 190945 ms
+many:   167846 ms
 \end{verbatim}
-
 \section{Conclusions and possible imporovements}
-
 Even if these models are not solved efficiently enough to solve the proposed problem in it original formulation (if not for very easy cases) 
 it is often possible to cope with plans with reasonable length, in particular with the ASP implementation. 
 There are a few possible improvement for the models:
-
 \begin{itemize}
-\item Add the symmery breaking rule for identifiers also in the MiniZinc model
+\item Add the symmetry breaking rule for identifiers also in the MiniZinc model
 \item Add additional cuts in the MiniZinc model as in ASP
 \item Modify the implementation of path constraint in ASP to make it more efficient 
 \end{itemize} 
-
 It could also be useful to improve the python interfaces to Clingo and MiniZinc to make them more flexible and complete.
-
 \end{document}

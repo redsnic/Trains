@@ -17,7 +17,7 @@ if __name__ == '__main__':
     
     Reader = InputReader()
     
-    # adding input information
+    # adding input information (the list is not exaustive and these definitions are not strictly necessary)
     # actions domain
     CI.addPredicateType("parking", 3)
     CI.addPredicateType("stopping", 3)
